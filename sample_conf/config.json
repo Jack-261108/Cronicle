@@ -4,7 +4,7 @@
 	"smtp_hostname": "localhost",
 	"smtp_port": 25,
 	"max_emails_per_day": 0,
-	"secret_key": "CHANGE_ME",
+	"secret_key": "4708bf6b0ed904ed87b440944048f4cd",
 	
 	"log_dir": "logs",
 	"log_filename": "[component].log",
@@ -90,7 +90,7 @@
 		"http_port": 3012,
 		"http_htdocs_dir": "htdocs",
 		"http_max_upload_size": 104857600,
-		"http_static_ttl": 3600,
+		"http_static_ttl": 0,
 		"http_static_index": "index.html",
 		"http_server_signature": "Cronicle 1.0",
 		"http_gzip_text": true,

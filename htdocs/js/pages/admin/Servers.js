@@ -23,7 +23,7 @@ Class.add( Page.Admin, {
 			]
 		);
 		
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		// Active Server Cluster
 		

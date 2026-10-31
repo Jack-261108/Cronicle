@@ -65,18 +65,15 @@ var copyFile = exports.copyFile = function copyFile( old_file, new_file, callbac
 	// copy file
 	if (new_file.match(/\/$/)) new_file += path.basename(old_file);
 	console.log( "Copy: " + old_file + " --> " + new_file );
-	
+
 	try { fs.unlinkSync( new_file ); }
 	catch (e) {;}
-	
+
 	if (!fileExistsSync( path.dirname(new_file) )) {
 		mkdirp.sync( path.dirname(new_file) );
 	}
-	
-	var inp = fs.createReadStream(old_file);
-	var outp = fs.createWriteStream(new_file);
-	inp.on('end', callback );
-	inp.pipe( outp );
+
+	fs.copyFile( old_file, new_file, callback );
 };
 
 var copyFiles = exports.copyFiles = function copyFiles( src_spec, dest_dir, callback ) {
@@ -230,7 +227,7 @@ var bundleCompress = exports.bundleCompress = function bundleCompress( args, cal
 		var files = [];
 		
 		files_raw.replace( /\b(src|href)\=[\"\']([^\"\']+)[\"\']/ig, function(m_all, m_g1, m_g2) {
-			files.push( path.join(html_dir, m_g2) );
+			files.push( path.join(html_dir, m_g2.replace(/\?.*$/, '')) );
 		} );
 		
 		if (files.length) {

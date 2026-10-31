@@ -8,7 +8,7 @@ Class.subclass( Page.Base, "Page.Home", {
 		this.worker.onmessage = this.render_upcoming_events.bind(this);
 		
 		var html = '';
-		html += '<div style="padding:10px 20px 20px 20px">';
+		html += '<div class="page_pad">';
 		
 		// header stats
 		html += '<div id="d_home_header_stats"></div>';
@@ -103,7 +103,7 @@ Class.subclass( Page.Base, "Page.Home", {
 		
 		html += '<fieldset style="margin-top:0px; margin-right:0px; padding-top:10px;"><legend>Server Stats</legend>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				var active_events = find_objects( app.schedule, { enabled: 1 } );
 				
 				html += '<div class="info_label">TOTAL EVENTS</div>';
@@ -116,7 +116,7 @@ Class.subclass( Page.Base, "Page.Home", {
 				html += '<div class="info_value">' + commify( app.plugins.length ) + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOBS COMPLETED TODAY</div>';
 				html += '<div class="info_value">' + commify( stats.jobs_completed || 0 ) + '</div>';
 				
@@ -127,7 +127,7 @@ Class.subclass( Page.Base, "Page.Home", {
 				html += '<div class="info_value">' + pct( (stats.jobs_completed || 0) - (stats.jobs_failed || 0), stats.jobs_completed || 1 ) + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">TOTAL SERVERS</div>';
 				html += '<div class="info_value">' + commify( num_keys(servers) ) + '</div>';
 				
@@ -154,7 +154,7 @@ Class.subclass( Page.Base, "Page.Home", {
 				html += '<div class="info_value">' + get_text_from_bytes(total_mem) + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				var mserver = servers[ app.masterHostname ] || {};
 				html += '<div class="info_label">MASTER SERVER UPTIME</div>';
 				html += '<div class="info_value">' + get_text_from_seconds( mserver.uptime || 0, false, true ) + '</div>';
@@ -561,34 +561,50 @@ Class.subclass( Page.Base, "Page.Home", {
 			for (var id in app.activeJobs) {
 				var job = app.activeJobs[id];
 				
+				var $elapsed = $('#d_home_jt_elapsed_' + job.id);
+				var $progress = $('#d_home_jt_progress_' + job.id);
+
 				if (job.pending) {
 					// update countdown
-					$('#d_home_jt_progress_' + job.id).html( this.getNiceJobPendingText(job) );
-					
+					var pending_text = this.getNiceJobPendingText(job);
+					if ($progress.text() !== pending_text) $progress.text(pending_text);
+
 					if (job.log_file) {
 						// retry delay
-						$('#d_home_jt_elapsed_' + job.id).html( this.getNiceJobElapsedTime(job) );
+						var pending_elapsed = this.getNiceJobElapsedTime(job);
+						if ($elapsed.text() !== pending_elapsed) $elapsed.text(pending_elapsed);
 					}
 				} // pending job
 				else {
-					$('#d_home_jt_elapsed_' + job.id).html( this.getNiceJobElapsedTime(job) );
-					$('#d_home_jt_remaining_' + job.id).html( this.getNiceJobRemainingTime(job) );
-					
+					var elapsed_text = this.getNiceJobElapsedTime(job);
+					if ($elapsed.text() !== elapsed_text) $elapsed.text(elapsed_text);
+
+					var remain_text = this.getNiceJobRemainingTime(job);
+					var $remain = $('#d_home_jt_remaining_' + job.id);
+					if ($remain.text() !== remain_text) $remain.text(remain_text);
+
 					// update progress bar without redrawing it (so animation doesn't jitter)
 					var counter = job.progress || 1;
 					var cx = Math.floor( counter * this.bar_width );
-					var prog_cont = $('#d_home_jt_progress_' + job.id + ' > div.progress_bar_container');
-					
+					var prog_cont = $progress.find('> div.progress_bar_container');
+
 					if ((counter == 1.0) && !prog_cont.hasClass('indeterminate')) {
 						prog_cont.addClass('indeterminate').attr('title', "");
 					}
 					else if ((counter < 1.0) && prog_cont.hasClass('indeterminate')) {
 						prog_cont.removeClass('indeterminate');
 					}
-					
-					if (counter < 1.0) prog_cont.attr('title', '' + Math.floor( (counter / 1.0) * 100 ) + '%');
-					
-					prog_cont.find('> div.progress_bar_inner').css( 'width', '' + cx + 'px' );
+
+					if (counter < 1.0) {
+						var nice_title = '' + Math.floor( (counter / 1.0) * 100 ) + '%';
+						if (prog_cont.attr('title') !== nice_title) prog_cont.attr('title', nice_title);
+					}
+
+					var bar = prog_cont.find('> div.progress_bar_inner')[0];
+					if (bar && bar._cronicle_width !== cx) {
+						bar._cronicle_width = cx;
+						$(bar).css( 'width', cx + 'px' );
+					}
 				} // active job
 			} // foreach job
 		} // quick update

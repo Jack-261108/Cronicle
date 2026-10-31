@@ -36,7 +36,7 @@ Class.add( Page.Admin, {
 		var cols = ['Plugin Name', 'Author', '# of Events', 'Created', 'Modified', 'Actions'];
 		
 		// html += '<div style="padding:5px 15px 15px 15px;">';
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<div class="subtitle">';
 			html += 'Plugins';

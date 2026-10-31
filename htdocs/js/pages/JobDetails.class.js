@@ -223,7 +223,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 			// Job labels originate in plugin output and must be treated as plain text.
 			if (job.label) nice_id = encode_entities(job.label) + ' (' + job.id + ')';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB ID</div>';
 				html += '<div class="info_value">' + nice_id + '</div>';
 				
@@ -238,7 +238,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				html += '<div class="info_value">' + (event.enabled ? summarize_event_timing(event.timing, event.timezone) : '(Disabled)') + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">CATEGORY NAME</div>';
 				html += '<div class="info_value">';
 					if (cat) html += this.getNiceCategory(cat, col_width);
@@ -266,7 +266,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				nice_source = '<a href="#JobDetails?id=' + job.source_job + '">' + nice_source + '</a>';
 			}
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB SOURCE</div>';
 				html += '<div class="info_value"><div class="" style="">' + nice_source + '</div></div>';
 				
@@ -277,7 +277,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				html += '<div class="info_value">' + (job.detached_pid || job.pid || '(Unknown)') + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB STARTED</div>';
 				html += '<div class="info_value">';
 					if ((job.time_start - job.now >= 60) && !event.multiplex && !job.source) {
@@ -790,7 +790,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 			// Job labels originate in plugin output and must be treated as plain text.
 			if (job.label) nice_id = encode_entities(job.label) + ' (' + job.id + ')';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB ID</div>';
 				html += '<div class="info_value">' + nice_id + '</div>';
 				
@@ -801,7 +801,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				html += '<div class="info_value">' + (event.enabled ? summarize_event_timing(event.timing, event.timezone) : '(Disabled)') + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">CATEGORY NAME</div>';
 				html += '<div class="info_value">' + this.getNiceCategory(cat, col_width) + '</div>';
 				
@@ -817,7 +817,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				nice_source = '<a href="#JobDetails?id=' + job.source_job + '">' + nice_source + '</a>';
 			}
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB SOURCE</div>';
 				html += '<div class="info_value"><div class="" style="">' + nice_source + '</div></div>';
 				
@@ -828,7 +828,7 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 				html += '<div class="info_value" id="d_live_pid">' + job.pid + '</div>';
 			html += '</div>';
 							
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">JOB STARTED</div>';
 				html += '<div class="info_value">' + get_nice_date_time(job.time_start, false, true) + '</div>';
 				
@@ -1049,7 +1049,44 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 		var $cont = null;
 		var chunk_count = 0;
 		var error_shown = false;
-		
+		var log_buffer = [];
+		var log_frame = null;
+
+		// Batch log lines into one DOM write per animation frame.  A busy job
+		// can emit several log events per second, and appending each one
+		// separately forces a layout pass every time.
+		var flush_log = function() {
+			log_frame = null;
+			if (!$cont || !log_buffer.length) return;
+
+			var text = log_buffer.join("\n").trim();
+			log_buffer = [];
+			if (!text) return;
+
+			var scroll_y = $cont.scrollTop();
+			var scroll_max = Math.max(0, $cont.prop('scrollHeight') - $cont.height());
+			var need_scroll = ((scroll_max - scroll_y) <= 10);
+
+			$cont.append( '<pre class="log_chunk">' + text + '</pre>' );
+
+			// only show newest 1K chunks
+			chunk_count++;
+			if (chunk_count >= 1000) {
+				$cont.children().first().remove();
+				chunk_count--;
+			}
+
+			if (need_scroll) $cont.scrollTop( $cont.prop('scrollHeight') );
+		};
+
+		var schedule_flush = function() {
+			if (log_frame) return;
+			var request_frame = window.requestAnimationFrame || function(callback) {
+				return setTimeout(callback, 16);
+			};
+			log_frame = request_frame( flush_log );
+		};
+
 		var url = app.proto + job.hostname + ':' + app.port;
 		if (config.custom_live_log_socket_url) {
 			// custom websocket URL for single-master systems behind an LB
@@ -1114,24 +1151,10 @@ Class.subclass( Page.Base, "Page.JobDetails", {
 		
 		this.socket.on('log_data', function(lines) {
 			// received log data, as array of lines
-			var scroll_y = $cont.scrollTop();
-			var scroll_max = Math.max(0, $cont.prop('scrollHeight') - $cont.height());
-			var need_scroll = ((scroll_max - scroll_y) <= 10);
-			
-			$cont.append( 
-				'<pre class="log_chunk">' + 
-					lines.map( function(line) { return line.replace(/</g, '&lt;'); } ).join("\n").trim() + 
-				'</pre>' 
-			);
-			
-			// only show newest 1K chunks
-			chunk_count++;
-			if (chunk_count >= 1000) {
-				$cont.children().first().remove();
-				chunk_count--;
+			for (var idx = 0, len = lines.length; idx < len; idx++) {
+				log_buffer.push( lines[idx].replace(/</g, '&lt;') );
 			}
-			
-			if (need_scroll) $cont.scrollTop( $cont.prop('scrollHeight') );
+			schedule_flush();
 		} );
 	},
 	

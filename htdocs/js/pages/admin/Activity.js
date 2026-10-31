@@ -49,7 +49,7 @@ Class.add( Page.Admin, {
 		
 		var cols = ['Date/Time', 'Type', 'Description', 'Username', 'IP Address', 'Actions'];
 		
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<div class="subtitle">';
 			html += 'Activity Log';

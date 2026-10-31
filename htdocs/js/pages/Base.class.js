@@ -60,9 +60,9 @@ Class.subclass( Page, "Page.Base", {
 		// Job labels originate in plugin output, so always encode them before
 		// composing HTML for the Home and History pages.
 		if (job.label) nice_id = encode_entities(job.label) + ' (' + job.id + ')';
-		return '<div style="white-space:nowrap;"><i class="fa fa-pie-chart">&nbsp;</i>' + nice_id + '</div>';
+		return '<span class="badge_pill badge_job" style="white-space:nowrap;"><i class="fa fa-pie-chart">&nbsp;</i>' + nice_id + '</span>';
 	},
-	
+
 	getNiceEvent: function(title, width) {
 		if (!width) width = 500;
 		if (!title) return '(None)';
@@ -71,36 +71,36 @@ Class.subclass( Page, "Page.Base", {
 			if (title.chain || title.chain_error) icon_class = 'fa fa-link';
 			title = title.title;
 		}
-		return '<div class="ellip" style="max-width:'+width+'px;"><i class="' + icon_class + '">&nbsp;</i>' + title + '</div>';
+		return '<div class="ellip badge_pill badge_event" style="max-width:'+width+'px;"><i class="' + icon_class + '">&nbsp;</i>' + title + '</div>';
 	},
-	
+
 	getNiceCategory: function(cat, width) {
 		if (!width) width = 500;
 		if (!cat) return '(None)';
 		var title = cat.title;
 		if (!cat.enabled) title += ' (Disabled)';
-		return '<div class="ellip" style="max-width:'+width+'px;"><i class="fa fa-folder-open-o">&nbsp;</i>' + title + '</div>';
+		return '<div class="ellip badge_pill badge_category" style="max-width:'+width+'px;"><i class="fa fa-folder-open-o">&nbsp;</i>' + title + '</div>';
 	},
-	
+
 	getNiceGroup: function(group, target, width) {
 		if (!width) width = 500;
 		if (!group && !target) return '(None)';
 		if (group) {
 			var title = group.title;
 			if (group.multiplex) title += '&nbsp;(<i class="fa fa-bolt" title="Multiplexed"></i>)';
-			return '<div class="ellip" style="max-width:'+width+'px;"><i class="mdi mdi-server-network">&nbsp;</i>' + title + '</div>';
+			return '<div class="ellip badge_pill badge_group" style="max-width:'+width+'px;"><i class="mdi mdi-server-network">&nbsp;</i>' + title + '</div>';
 		}
 		else {
-			return '<div class="ellip" style="max-width:'+width+'px;" title="'+target+'"><i class="mdi mdi-desktop-tower mdi-lg">&nbsp;</i>' + target.replace(/\.[\w\-]+\.\w+$/, '') + '</div>';
+			return '<div class="ellip badge_pill badge_server" style="max-width:'+width+'px;" title="'+target+'"><i class="mdi mdi-desktop-tower mdi-lg">&nbsp;</i>' + target.replace(/\.[\w\-]+\.\w+$/, '') + '</div>';
 		}
 	},
-	
+
 	getNicePlugin: function(plugin, width) {
 		if (!width) width = 500;
 		if (!plugin) return '(None)';
 		var title = plugin.title;
 		if (!plugin.enabled) title += ' (Disabled)';
-		return '<div class="ellip" style="max-width:'+width+'px;"><i class="fa fa-plug">&nbsp;</i>' + title + '</div>';
+		return '<div class="ellip badge_pill badge_plugin" style="max-width:'+width+'px;"><i class="fa fa-plug">&nbsp;</i>' + title + '</div>';
 	},
 	
 	getNiceAPIKey: function(item, link, width) {
@@ -141,17 +141,18 @@ Class.subclass( Page, "Page.Base", {
 	},
 	
 	setGroupVisible: function(group, visible) {
-		// set web groups of form fields visible or invisible, 
+		// set web groups of form fields visible or invisible,
 		// according to master checkbox for each section
+		// toggle immediately instead of animating every affected row
 		var selector = 'tr.' + group + 'group';
 		if (visible) {
 			if ($(selector).hasClass('collapse')) {
 				$(selector).hide().removeClass('collapse');
 			}
-			$(selector).show(250);
+			$(selector).show();
 		}
-		else $(selector).hide(250);
-		
+		else $(selector).hide();
+
 		return this; // for chaining
 	},
 	

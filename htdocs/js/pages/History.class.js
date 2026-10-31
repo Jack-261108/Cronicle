@@ -34,7 +34,7 @@ Class.subclass( Page.Base, "Page.History", {
 		
 		var html = '';
 		// html += '<div style="padding:5px 15px 15px 15px;">';
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<div class="subtitle">';
 			html += 'All Completed Jobs';
@@ -184,11 +184,11 @@ Class.subclass( Page.Base, "Page.History", {
 				['event_history&id=' + args.id, "Event History"]
 			]
 		);
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<fieldset style="margin-top:0px; margin-right:0px; padding-top:10px;"><legend>Event Stats</legend>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">EVENT NAME</div>';
 				html += '<div class="info_value"><a href="#Schedule?sub=edit_event&id='+event.id+'">' + this.getNiceEvent(event.title, col_width) + '</a></div>';
 				
@@ -199,7 +199,7 @@ Class.subclass( Page.Base, "Page.History", {
 				html += '<div class="info_value">' + (event.enabled ? summarize_event_timing(event.timing, event.timezone) : '(Disabled)') + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">USERNAME</div>';
 				html += '<div class="info_value">' + this.getNiceUsername(event, false, col_width) + '</div>';
 				
@@ -236,7 +236,7 @@ Class.subclass( Page.Base, "Page.History", {
 				if (job) nice_last_result = (job.code == 0) ? '<span class="color_label green"><i class="fa fa-check">&nbsp;</i>Success</span>' : '<span class="color_label red"><i class="fa fa-warning">&nbsp;</i>Error</span>';
 			}
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">AVG. ELAPSED</div>';
 				html += '<div class="info_value">' + get_text_from_seconds(total_elapsed / count, true, false) + '</div>';
 				
@@ -247,7 +247,7 @@ Class.subclass( Page.Base, "Page.History", {
 				html += '<div class="info_value">' + get_text_from_bytes( total_mem / count ) + '</div>';
 			html += '</div>';
 			
-			html += '<div style="float:left; width:25%;">';
+			html += '<div class="stat_col">';
 				html += '<div class="info_label">SUCCESS RATE</div>';
 				html += '<div class="info_value">' + pct(total_success, count) + '</div>';
 				
@@ -686,7 +686,7 @@ Class.subclass( Page.Base, "Page.History", {
 				['event_history', "Event History"]
 			]
 		);
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		var cols = ['Job ID', 'Hostname', 'Result', 'Start Date/Time', 'Elapsed Time', 'Avg CPU', 'Avg Mem'];
 		

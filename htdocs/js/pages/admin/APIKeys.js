@@ -39,7 +39,7 @@ Class.add( Page.Admin, {
 		
 		var cols = ['App Title', 'API Key', 'Status', 'Author', 'Created', 'Actions'];
 		
-		html += '<div style="padding:20px 20px 30px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<div class="subtitle">';
 			html += 'API Keys';

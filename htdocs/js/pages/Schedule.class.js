@@ -66,7 +66,7 @@ Class.subclass( Page.Base, "Page.Schedule", {
 			'Actions'
 		];
 		
-		html += '<div style="padding:20px 20px 20px 20px">';
+		html += '<div class="page_pad">';
 		
 		html += '<div class="subtitle">';
 			html += 'Scheduled Events';

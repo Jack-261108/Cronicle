@@ -26,11 +26,11 @@ Class.subclass( Page.Base, "Page.MyAccount", {
 		var html = '';
 		var user = resp.user;
 				
-		html += '<div style="padding:50px 20px 50px 20px">';
+		html += '<div class="page_pad account_page">';
 		html += '<center>';
-		
-		html += '<table><tr>';
-			html += '<td valign="top" style="vertical-align:top">';
+
+		html += '<table class="account_layout"><tr>';
+			html += '<td class="account_form" valign="top" style="vertical-align:top">';
 			
 		html += '<table style="margin:0;">';
 		
@@ -74,16 +74,20 @@ Class.subclass( Page.Base, "Page.MyAccount", {
 		html += '</center>';
 		
 		html += '</td>';
-			html += '<td valign="top" align="left" style="vertical-align:top; text-align:left;">';
+			html += '<td class="account_side" valign="top" align="left" style="vertical-align:top; text-align:left;">';
 				// gravar profile image and edit button
-				html += '<fieldset style="width:150px; margin-left:40px; background:white; border:1px solid #ddd; box-shadow:none;"><legend>Profile Picture</legend>';
-				if (app.config.external_users) {
-					html += '<div id="d_ma_image" style="width:128px; height:128px; margin:5px auto 0 auto; background-image:url('+app.getUserAvatarURL(128)+'); cursor:default;"></div>';
-				}
-				else {
-					html += '<div id="d_ma_image" style="width:128px; height:128px; margin:5px auto 0 auto; background-image:url('+app.getUserAvatarURL(128)+'); cursor:pointer;" onMouseUp="$P().edit_gravatar()"></div>';
-					html += '<div class="button mini" style="margin:10px auto 5px auto;" onMouseUp="$P().edit_gravatar()">Edit Image...</div>';
-					html += '<div style="font-size:11px; color:#888; text-align:center; margin-bottom:5px;">Image services provided by <a href="https://en.gravatar.com/connect/" target="_blank">Gravatar.com</a>.</div>';
+				var avatar_url = app.getUserAvatarURL(128);
+				var initial = (app.username.charAt(0) || 'U').toUpperCase();
+
+				html += '<fieldset class="account_avatar"><legend>Profile Picture</legend>';
+				html += '<div id="d_ma_image" class="profile_avatar_container" onMouseUp="$P().edit_gravatar()" title="Edit Image at Gravatar">';
+				html += '<div class="profile_avatar_fallback">' + initial + '</div>';
+				html += '<img class="profile_avatar_img" src="' + avatar_url + '" alt="" style="opacity:0;" onload="this.style.opacity=\'1\';" onerror="this.remove();" />';
+				html += '</div>';
+
+				if (!app.config.external_users) {
+					html += '<div class="button mini" style="margin:10px auto 8px auto;" onMouseUp="$P().edit_gravatar()"><i class="fa fa-camera">&nbsp;&nbsp;</i>Edit Image...</div>';
+					html += '<div style="font-size:11px; color:#888; text-align:center; line-height:1.4; margin-bottom:5px;">Image services via <a href="https://en.gravatar.com/connect/" target="_blank">Gravatar.com</a></div>';
 				}
 				html += '</fieldset>';
 			html += '</td>';
@@ -142,8 +146,15 @@ Class.subclass( Page.Base, "Page.MyAccount", {
 			
 			app.user = resp.user;
 			app.updateHeaderInfo();
-			
-			$('#d_ma_image').css( 'background-image', 'url('+app.getUserAvatarURL(128)+')' );
+
+			var new_avatar_url = app.getUserAvatarURL(128);
+			var $container = $('#d_ma_image');
+			$container.find('.profile_avatar_img').remove();
+			var $newImg = $('<img class="profile_avatar_img" alt="" style="opacity:0;" />')
+				.attr('src', new_avatar_url)
+				.on('load', function() { $(this).css('opacity', 1); })
+				.on('error', function() { $(this).remove(); });
+			$container.append($newImg);
 		} );
 	},
 	

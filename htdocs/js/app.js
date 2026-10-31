@@ -119,12 +119,20 @@ app.extend({
 	},
 	
 	updateHeaderInfo: function() {
-		// update top-right display
+		// update top-right display with modern centered user pill
+		var avatar_url = this.getUserAvatarURL( this.retina ? 64 : 32 );
+		var display_name = (this.user.full_name || app.username).replace(/\s+.+$/, '');
+		var initial = (display_name.charAt(0) || 'U').toUpperCase();
+
 		var html = '';
-		html += '<div id="d_header_divider" class="right" style="margin-right:0;"></div>';
-		html += '<div class="header_option logout right" onMouseUp="app.doUserLogout()"><i class="fa fa-power-off fa-lg">&nbsp;&nbsp;</i>Logout</div>';
-		html += '<div id="d_header_divider" class="right"></div>';
-		html += '<div id="d_header_user_bar" class="right" style="background-image:url(' + this.getUserAvatarURL( this.retina ? 64 : 32 ) + ')" onMouseUp="app.doMyAccount()">' + (this.user.full_name || app.username).replace(/\s+.+$/, '') + '</div>';
+		html += '<div class="header_option logout" onMouseUp="app.doUserLogout()" title="Log out"><i class="fa fa-power-off">&nbsp;</i><span>Logout</span></div>';
+		html += '<div id="d_header_user_bar" class="header_user_pill" onMouseUp="app.doMyAccount()" title="View Account">';
+		html += '<span class="header_avatar_wrap">';
+		html += '<span class="header_avatar_fallback">' + initial + '</span>';
+		html += '<img class="header_avatar" src="' + avatar_url + '" alt="" style="opacity:0;" onload="this.style.opacity=\'1\'; $(this).prev().hide();" onerror="this.remove();" />';
+		html += '</span>';
+		html += '<span class="header_username">' + escape_text_field_value(display_name) + '</span>';
+		html += '</div>';
 		$('#d_header_user_container').html( html );
 	},
 	
@@ -574,29 +582,29 @@ app.extend({
 		var num_active = num_keys( app.activeJobs || {} );
 		var nice_active = commify(num_active) + ' ' + pluralize('Job', num_active);
 		if (!num_active) nice_active = "Idle";
-		
-		$('#d_tab_time > span, #d_scroll_time > span').html(
-			// get_nice_date_time( when, true, true ) + ' ' + 
-			get_nice_time(when, true) + ' ' + 
-			moment.tz( when * 1000, app.tz).format("z") + ' - ' + 
-			nice_active
-		);
+
+		var clock_text = get_nice_time(when, true) + ' ' +
+			moment.tz( when * 1000, app.tz).format("z") + ' - ' +
+			nice_active;
+
+		// only touch the DOM when the displayed text actually changes
+		if (clock_text !== this._last_clock_text) {
+			this._last_clock_text = clock_text;
+			$('#d_tab_time > span, #d_scroll_time > span').html( clock_text );
+		}
 	},
 	
 	updateMasterSwitch: function() {
-		// update master switch display
-		var html = '';
-		if (this.hasPrivilege('state_update')) {
-			html = '<i '+(this.state.enabled ? 'class="fa fa-check-square-o">' : 'class="fa fa-square-o">')+'</i>&nbsp;<b>Scheduler Enabled</b>';
-		}
-		else {
-			if (this.state.enabled) html = '<i class="fa fa-check">&nbsp;</i><b>Scheduler Enabled</b>';
-			else html = '<i class="fa fa-times">&nbsp;</i><b>Scheduler Disabled</b>';
-		}
-		
-		$('#d_tab_master')
-			.css( 'color', this.state.enabled ? '#3f7ed5' : '#777' )
-			.html( html );
+		// update master switch display with modern status pill
+		var is_enabled = !!(this.state && this.state.enabled);
+		var can_edit = this.hasPrivilege('state_update');
+
+		var html = '<div class="scheduler_switch_pill ' + (is_enabled ? 'enabled' : 'disabled') + (can_edit ? ' clickable' : '') + '">';
+		html += '<span class="status_pulse_dot"></span>';
+		html += '<span class="switch_label">' + (is_enabled ? 'Scheduler Active' : 'Scheduler Paused') + '</span>';
+		html += '</div>';
+
+		$('#d_tab_master').html( html );
 	},
 	
 	toggleMasterSwitch: function() {
@@ -621,26 +629,38 @@ app.extend({
 	
 	checkScrollTime: function() {
 		// check page scroll, see if we need to fade in/out the scroll time widget
-		var pos = get_scroll_xy();
-		var y = pos.y;
-		var min_y = 70;
-		
-		if ((y >= min_y) && this.clock_visible) {
-			if (!this.scroll_time_visible) {
-				// time to fade it in
-				$('#d_scroll_time').stop().css('top', '0px').fadeTo( 1000, 1.0 );
-				this.scroll_time_visible = true;
+		// throttle the scroll handler to at most one update per animation frame
+		if (this._scroll_time_frame) return;
+
+		var self = this;
+		var request_frame = window.requestAnimationFrame || function(callback) {
+			return setTimeout(callback, 16);
+		};
+
+		this._scroll_time_frame = request_frame( function() {
+			self._scroll_time_frame = null;
+
+			var pos = get_scroll_xy();
+			var y = pos.y;
+			var min_y = 70;
+
+			if ((y >= min_y) && self.clock_visible) {
+				if (!self.scroll_time_visible) {
+					// time to fade it in
+					$('#d_scroll_time').stop().css('top', '0px').fadeTo( 1000, 1.0 );
+					self.scroll_time_visible = true;
+				}
 			}
-		}
-		else {
-			if (this.scroll_time_visible) {
-				// time to fade it out
-				$('#d_scroll_time').stop().fadeTo( 500, 0, function() {
-					$(this).css('top', '-30px');
-				} );
-				this.scroll_time_visible = false;
+			else {
+				if (self.scroll_time_visible) {
+					// time to fade it out
+					$('#d_scroll_time').stop().fadeTo( 500, 0, function() {
+						$(this).css('top', '-30px');
+					} );
+					self.scroll_time_visible = false;
+				}
 			}
-		}
+		} );
 	},
 	
 	get_password_type: function() {
