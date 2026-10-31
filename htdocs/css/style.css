@@ -1333,17 +1333,42 @@ div.td_big {
 	line-height: 22px;
 }
 
+/* Table First & Last Column Fixed Widths */
+.data_table th:first-child,
+.data_table td:first-child {
+	width: 1%;
+	white-space: nowrap !important;
+}
+
+.data_table th:last-child,
+.data_table td:last-child {
+	white-space: nowrap !important;
+	width: 1%;
+	color: #94a3b8;
+	font-weight: 400;
+	text-align: right;
+}
+
 /* Table Actions & Links */
+.data_table td:last-child a,
+.data_table td:last-child span.link,
 .data_table td a,
 .data_table td span.link {
+	display: inline-block;
+	white-space: nowrap !important;
 	text-decoration: none;
 	font-weight: 600;
 	color: var(--c-primary);
-	padding: 4px 8px;
+	padding: 3px 6px;
+	margin: 0 1px;
 	border-radius: var(--radius-sm);
+	font-size: 12px;
+	vertical-align: middle;
 	transition: all var(--transition-fast);
 }
 
+.data_table td:last-child a:hover,
+.data_table td:last-child span.link:hover,
 .data_table td a:hover,
 .data_table td span.link:hover {
 	color: var(--c-primary-hover);

@@ -4,7 +4,7 @@
 	"smtp_hostname": "localhost",
 	"smtp_port": 25,
 	"max_emails_per_day": 0,
-	"secret_key": "4708bf6b0ed904ed87b440944048f4cd",
+	"secret_key": "c760b4a855969ebe84f112624c12563c",
 	
 	"log_dir": "logs",
 	"log_filename": "[component].log",
